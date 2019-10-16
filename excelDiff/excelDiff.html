@@ -1,0 +1,367 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>表格差异比较</title>
+    <script type="text/javascript" src="js/xlsx.core.min.js"></script>
+    <script type="text/javascript" src="js/jquery-3.2.1.min.js"></script>
+    <link rel="stylesheet" href="css.css">
+</head>
+<body>
+<div class="container">
+    <div class="left">
+        <h4>请点击按钮或者拖拽第一个表格文件到此区域</h4>
+        <input type="file" id="excel-file" multiple >
+        <!--<div class="drag" id="drop_zone">
+            <span>将文件拖放到到此处</span>
+        </div>-->
+
+
+        <!--显示表格-->
+        <div id="show-table"></div>
+        <table border="1px" id="tab">
+        </table>
+    </div>
+    <div class="right">
+        <h4>请点击按钮或者拖拽第一个表格文件到此区域</h4>
+        <input type="file" id="excel-file02" multiple >
+        <!--<div class="drag" id="drop_zone">
+            <span>将文件拖放到到此处</span>
+        </div>-->
+
+
+        <!--显示表格-->
+        <div id="show-table02"></div>
+        <table border="1px" id="tab02">
+        </table>
+    </div>
+    <button class="button" >显示差异</button>
+    <table class="diff" id="diff" border="1px">
+
+    </table>
+</div>
+</body>
+</html>
+<script>
+    var sheetOne=[];
+    var sheetTwo=[];
+    //表格1的按钮上传
+    $('#excel-file').change(firstExcel);
+
+    function firstExcel(e) {
+            var files = e.target.files;
+
+            var fileReader = new FileReader();
+            //文件读取成功完成时触发事件
+            fileReader.onload = function(ev) {
+                try {
+                    var data = ev.target.result,
+                        workbook = XLSX.read(data, {
+                            type: 'binary'
+                        }), // 以二进制流方式读取得到整份excel表格对象
+                        persons = []; // 存储获取到的数据
+                } catch (e) {
+                    alert('请上传表格文件');
+                    return;
+                }
+
+                // 表格的表格范围，可用于判断表头是否数量是否正确
+                var fromTo = '';
+                // 遍历每张表读取
+                for (var sheet in workbook.Sheets) {
+                    if (workbook.Sheets.hasOwnProperty(sheet)) {
+                        fromTo = workbook.Sheets[sheet]['!ref'];
+                        console.log(fromTo);
+                        persons = persons.concat(XLSX.utils.sheet_to_json(workbook.Sheets[sheet]));
+                        //break; // 如果只取第一张表，就取消注释这行
+                    }
+                }
+                sheetOne=persons;
+                console.log(sheetOne);
+
+
+                //显示表格数据
+                $(document).ready(function() {
+                    var cell ="";
+                    var row = "";
+                    var table = "";
+                    for(var i = 0; i < persons.length; i++) {
+                        var cells = "";
+                        for(var key in persons[i] ){
+                            cell = "<td>" + persons[i][key] + "</td>";
+                            cells += cell;
+                        }
+                        row = "<tr>"+ cells + "<tr>";
+                        $("#tab").append(row);
+                    }
+                });
+            };
+
+            // 以二进制方式打开文件
+            fileReader.readAsBinaryString(files[0]);
+    }
+    //表格1的拖拽上传-------------------------------------------------------------------------------
+    var ipt = document.querySelector('.left');
+    ipt.ondragover = function () { return false; };
+    ipt.ondrop = function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e = e || window.event;
+        var files = e.dataTransfer.files;
+        var fileReader = new FileReader();
+        //文件读取成功完成时触发事件
+        fileReader.onload = function(ev) {
+            try {
+                var data = ev.target.result,
+                    workbook = XLSX.read(data, {
+                        type: 'binary'
+                    }), // 以二进制流方式读取得到整份excel表格对象
+                    persons = []; // 存储获取到的数据
+            } catch (e) {
+                alert('请上传表格文件');
+                return;
+            }
+
+            // 表格的表格范围，可用于判断表头是否数量是否正确
+            var fromTo = '';
+            // 遍历每张表读取
+            for (var sheet in workbook.Sheets) {
+                if (workbook.Sheets.hasOwnProperty(sheet)) {
+                    fromTo = workbook.Sheets[sheet]['!ref'];
+                    console.log(fromTo);
+                    persons = persons.concat(XLSX.utils.sheet_to_json(workbook.Sheets[sheet]));
+                    break; // 如果只取第一张表，就取消注释这行
+                }
+            }
+
+            sheetOne=persons;
+            console.log(sheetOne);
+
+            //显示表格数据
+            $(document).ready(function() {
+                var cell ="";
+                var row = "";
+                var table = "";
+                for(var i = 0; i < persons.length; i++) {
+                    var cells = "";
+                    for(var key in persons[i] ){
+                        cell = "<td>" + persons[i][key] + "</td>";
+                        cells += cell;
+                    }
+                    row = "<tr>"+ cells + "<tr>";
+                    $("#tab").append(row);
+                }
+            });
+        };
+
+        // 以二进制方式打开文件
+        fileReader.readAsBinaryString(files[0]);
+    };
+
+    //表格2的上传
+        $('#excel-file02').change(function(e) {
+            var files = e.target.files;
+
+            var fileReader = new FileReader();
+            //文件读取成功完成时触发事件
+            fileReader.onload = function(ev) {
+                try {
+                    var data = ev.target.result,
+                        workbook = XLSX.read(data, {
+                            type: 'binary'
+                        }), // 以二进制流方式读取得到整份excel表格对象
+                        persons = []; // 存储获取到的数据
+                } catch (e) {
+                    alert('请上传表格文件');
+                    return;
+                }
+
+                // 表格的表格范围，可用于判断表头是否数量是否正确
+                var fromTo = '';
+                // 遍历每张表读取
+                for (var sheet in workbook.Sheets) {
+                    if (workbook.Sheets.hasOwnProperty(sheet)) {
+                        fromTo = workbook.Sheets[sheet]['!ref'];
+                        console.log(fromTo);
+                        persons = persons.concat(XLSX.utils.sheet_to_json(workbook.Sheets[sheet]));
+                        break; // 如果只取第一张表，就取消注释这行
+                    }
+                }
+
+                sheetTwo=persons;
+                console.log(sheetTwo);
+
+                //显示表格数据
+                $(document).ready(function() {
+                    var cell ="";
+                    var row = "";
+                    var table = "";
+                    for(var i = 0; i < persons.length; i++) {
+                        var cells = "";
+                        for(var key in persons[i] ){
+                            cell = "<td>" + persons[i][key] + "</td>";
+                            cells += cell;
+                        }
+                        row = "<tr>"+ cells + "<tr>";
+                        $("#tab02").append(row);
+                    }
+                });
+            };
+            // 以二进制方式打开文件
+            fileReader.readAsBinaryString(files[0]);
+
+    });
+    //表格2的拖拽上传-------------------------------------------------------------------------------
+    var ipt = document.querySelector('.right');
+    ipt.ondragover = function () { return false; };
+    ipt.ondrop = function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e = e || window.event;
+        var files = e.dataTransfer.files;
+        var fileReader = new FileReader();
+        //文件读取成功完成时触发事件
+        fileReader.onload = function(ev) {
+            try {
+                var data = ev.target.result,
+                    workbook = XLSX.read(data, {
+                        type: 'binary'
+                    }), // 以二进制流方式读取得到整份excel表格对象
+                    persons = []; // 存储获取到的数据
+            } catch (e) {
+                alert('请上传表格文件');
+                return;
+            }
+
+            // 表格的表格范围，可用于判断表头是否数量是否正确
+            var fromTo = '';
+            // 遍历每张表读取
+            for (var sheet in workbook.Sheets) {
+                if (workbook.Sheets.hasOwnProperty(sheet)) {
+                    fromTo = workbook.Sheets[sheet]['!ref'];
+                    console.log(fromTo);
+                    persons = persons.concat(XLSX.utils.sheet_to_json(workbook.Sheets[sheet]));
+                    break; // 如果只取第一张表，就取消注释这行
+                }
+            }
+
+            sheetTwo=persons;
+            console.log(sheetTwo);
+
+            //显示表格数据
+            $(document).ready(function() {
+                var cell ="";
+                var row = "";
+                var table = "";
+                for(var i = 0; i < persons.length; i++) {
+                    var cells = "";
+                    for(var key in persons[i] ){
+                        cell = "<td>" + persons[i][key] + "</td>";
+                        cells += cell;
+                    }
+                    row = "<tr>"+ cells + "<tr>";
+                    $("#tab02").append(row);
+                }
+            });
+        };
+        // 以二进制方式打开文件
+        fileReader.readAsBinaryString(files[0]);
+    };
+
+    //点击事件
+    $("button").click(function(){
+        var sheetDiff=[];
+        sheetDiff=sheetOne;
+        var cell ="";
+        var row = "";
+        for (var i = 0; i < sheetOne.length; i++)
+        {
+            var cells = "";
+            for (var key in sheetOne[i])
+            {
+                if (sheetOne[i][key] != sheetTwo[i][key]){
+                    cell = "<td class='yellow'>" + sheetOne[i][key] + "</td>";
+                }else{
+                    cell = "<td>" + sheetOne[i][key] + "</td>";
+                }
+                cells += cell;
+            }
+            row = "<tr>"+ cells + "<tr>";
+            $("#diff").append(row);
+        }
+    });
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
